@@ -17,11 +17,16 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
 import org.apache.commons.codec.CharEncoding;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
@@ -41,13 +46,41 @@ public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
         CFG = new Configuration(Configuration.VERSION_2_3_23);
         CFG.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         CFG.setDefaultEncoding(CharEncoding.UTF_8);
-        CFG.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), "/");
+        ClassTemplateLoader classTemplateLoader = new ClassTemplateLoader(Thread.currentThread().getContextClassLoader(), "/");
+        CFG.setTemplateLoader(classTemplateLoader);
     }
 
     private Template template;
 
     public FreemarkerExcelBuilder() {
         widthStrategy(WidthStrategy.AUTO_WIDTH);
+    }
+
+    @Override
+    public ExcelBuilder directory(String dir) {
+        if (directory != null) {
+            if (directory.equals(dir)) {
+                return this;
+            }
+            throw new IllegalArgumentException("Template directory can only be set once.The current directory is " + directory);
+        }
+        synchronized (FreemarkerExcelBuilder.class) {
+            if (directory != null) {
+                if (directory.equals(dir)) {
+                    return this;
+                }
+                throw new IllegalArgumentException("Template directory can only be set once.The current directory is " + directory);
+            }
+            try {
+                FileTemplateLoader fileTemplateLoader = new FileTemplateLoader(new File(dir));
+                ClassTemplateLoader classTemplateLoader = new ClassTemplateLoader(Thread.currentThread().getContextClassLoader(), "/");
+                MultiTemplateLoader mtl = new MultiTemplateLoader(new TemplateLoader[]{fileTemplateLoader, classTemplateLoader});
+                CFG.setTemplateLoader(mtl);
+                return this;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**

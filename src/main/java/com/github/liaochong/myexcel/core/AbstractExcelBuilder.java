@@ -36,6 +36,8 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
+    protected static volatile String directory = null;
+
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
 
     @Override
@@ -73,6 +75,11 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
         }
         htmlToExcelFactory.freezePanes(freezePanes);
         return this;
+    }
+
+    @Override
+    public ExcelBuilder directory(String dir) {
+        throw new UnsupportedOperationException("Set directory is not supported.");
     }
 
     /**

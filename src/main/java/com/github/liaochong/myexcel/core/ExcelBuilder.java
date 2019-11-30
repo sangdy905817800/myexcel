@@ -79,6 +79,14 @@ public interface ExcelBuilder extends Closeable {
     ExcelBuilder template(String path);
 
     /**
+     * 文件目录
+     *
+     * @param dir 目录
+     * @return ExcelBuilder
+     */
+    ExcelBuilder directory(String dir);
+
+    /**
      * 构建
      *
      * @param renderData 渲染数据
